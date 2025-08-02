@@ -97,4 +97,20 @@ contract PointsHook is BaseHook, ERC1155 {
         uint256 poolIdUint = uint256(PoolId.unwrap(poolId));
         _mint(user, poolIdUint, points, "");
     }
+    Redeem points for TOKEN
+    function redeemPoints(uint256 points) external {
+        require(userPoints[msg.sender] >= points, "Insufficient points");
+        require(points > 0, "Points must be greater than 0");
+        uint256 tokensToMint = points / REDEMPTION_RATE; // 100 points = 1 TOKEN
+        require(tokensToMint > 0, "No tokens to redeem");
+        require(token.balanceOf(address(this)) >= tokensToMint, "Insufficient TOKEN balance");
+
+        userPoints[msg.sender] -= points;
+        token.transfer(msg.sender, tokensToMint);
+
+        emit PointsRedeemed(msg.sender, points, tokensToMint);
+    }
+
+    event PointsRedeemed(address indexed user, uint256 points, uint256 tokens);
 }
+
